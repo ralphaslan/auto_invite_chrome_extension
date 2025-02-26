@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "Element Click Automation",
+  "description": "Automatically clicks the Online button.",
+  "version": "1.0",
+  "permissions": [
+    "activeTab"
+  ],
+  "permissions": [
+    "scripting",
+    "activeTab"
+  ],
+  "host_permissions": [
+    "*://*/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ]
+}
