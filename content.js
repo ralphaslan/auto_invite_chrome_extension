@@ -1,6 +1,8 @@
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     if (request.action === "automateSelection") {
         automateSelection();
+    } else if (request.action === "automateFriendAdding") {
+        automateFriendAdding();
     }
 });
 
@@ -75,4 +77,65 @@ function automateSelection() {
             }, 300);
         }, 500);
     }, 500);
+}
+
+// New function: Automate friend adding
+async function automateFriendAdding() {
+    console.log("Starting friend-adding automation...");
+
+    const users = document.querySelectorAll('ul.userWidgetWrapperGrid li');
+    let addedCount = 0;
+
+    for (let user of users) {
+        if (addedCount >= 20) break; // Stop after adding 20 friends
+
+        // Hover over user to reveal buttons
+        const userLink = user.querySelector('.userLink');
+        if (!userLink) continue;
+
+        userLink.dispatchEvent(new MouseEvent('mouseenter', { bubbles: true }));
+        userLink.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        await new Promise(res => setTimeout(res, 800)); // Increased wait time
+
+        // Find the "Add Friend" button
+        const addFriendButton = user.querySelector('button.buttonBase.nodisable:not(.friendRequested):not(.removeFriend)');
+        if (!addFriendButton || addFriendButton.offsetParent === null) {
+            console.log("Skipping - 'Add Friend' button is missing or hidden.");
+            continue;
+        }
+
+        // Scroll into view to make sure it's interactable
+        addFriendButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+        // Dispatch multiple events to make sure it registers
+        addFriendButton.focus();
+        addFriendButton.dispatchEvent(new MouseEvent('mouseover', { bubbles: true }));
+        await new Promise(res => setTimeout(res, 300)); // Small delay before clicking
+        addFriendButton.click();
+        addFriendButton.dispatchEvent(new Event('click', { bubbles: true }));
+
+        console.log("Clicked 'Add Friend' for:", userLink.href);
+        addedCount++;
+
+        // Wait for the confirmation popup
+        await new Promise(res => setTimeout(res, 1200));
+
+        // Click the "Send" button in the popup
+        const sendButton = document.querySelector('input#preventClick.buttonBase.orangeButton');
+        if (sendButton) {
+            sendButton.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            sendButton.focus();
+            await new Promise(res => setTimeout(res, 300));
+            sendButton.click();
+            sendButton.dispatchEvent(new Event('click', { bubbles: true }));
+            console.log("Clicked 'Send' for confirmation.");
+        } else {
+            console.log("Send button not found.");
+        }
+
+        // Wait before moving to the next user (human-like behavior)
+        await new Promise(res => setTimeout(res, 2000 + Math.random() * 1000));
+    }
+
+    console.log("Friend-adding process completed.");
 }
